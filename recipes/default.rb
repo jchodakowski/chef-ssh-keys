@@ -9,6 +9,7 @@ if node['ssh_keys']
     # Defaults for new user
     user = {'uid' => node_user, 'gid' => node_user, 'dir' => "/home/#{node_user}"} unless user
 
+    bag_name = node['ssh_keys_data_bag_name']
     if user and user['dir'] and user['dir'] != "/dev/null"
       # Preparing SSH keys
       ssh_keys = []
@@ -19,13 +20,13 @@ if node['ssh_keys']
       elsif bag_users.kind_of?(Array)
         bag_users_list = bag_users
       else
-        bag_users_list = bag_users['users']
+        bag_users_list = bag_users[bag_name]
       end
 
       Array(bag_users_list).each do |bag_user|
         data = node['ssh_keys_use_encrypted_data_bag'] ?
-          Chef::EncryptedDataBagItem.load('users', bag_user) :
-          data_bag_item('users', bag_user)
+          Chef::EncryptedDataBagItem.load(bag_name, bag_user) :
+          data_bag_item(bag_name, bag_user)
 
         if data and data['ssh_keys']
           ssh_keys += Array(data['ssh_keys'])
